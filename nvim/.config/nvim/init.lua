@@ -89,7 +89,7 @@ require('packer').startup(function(use)
   use 'nvim-telescope/telescope-project.nvim'
   use 'nvim-telescope/telescope-dap.nvim'
   --- Markdown Wiki
-  use 'vimwiki/vimwiki'
+  --use 'vimwiki/vimwiki'
 
 
   -- tmux navigation
@@ -124,7 +124,7 @@ require('packer').startup(function(use)
             {
               desc = ' dotfiles',
               group = 'Number',
-              action = 'Telescope dotfiles',
+              action = 'e ~/dotfiles',
               key = 'd',
             },
           },
@@ -136,6 +136,11 @@ require('packer').startup(function(use)
 
 
 end)
+
+require("catppuccin").setup({
+	flavor = "mocha",
+})
+
 
 require('nvim-web-devicons').setup {
  -- your configuration here
