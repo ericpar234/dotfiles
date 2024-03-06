@@ -3,6 +3,13 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+--- Vim Indenting
+local o = vim.o
+
+o.expandtab = true
+o.smartindent = true 
+o.tabstop = 2
+o.shiftwidth = 2 
 
 local fn = vim.fn
 local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
@@ -82,6 +89,7 @@ require('packer').startup(function(use)
   --- Telescope extensions
   use 'nvim-lua/popup.nvim'
   use 'nvim-lua/plenary.nvim'
+  use 'nvim-telescope/telescope-fzf-native.nvim'
   use 'nvim-telescope/telescope-fzy-native.nvim'
   use 'nvim-telescope/telescope-media-files.nvim'
   use 'nvim-telescope/telescope-fzf-writer.nvim'
@@ -164,6 +172,7 @@ local git_mappings = {
 }
 local mappings = {
   ["<leader>"] = {
+    name = "File",
     f = { "<cmd>Telescope find_files<cr>", "Find File" },
     b = { "<cmd>Telescope buffers<cr>", "Find Buffer" },
     h = { "<cmd>Telescope help_tags<cr>", "Find Help" },
@@ -183,8 +192,6 @@ local mappings = {
   ["<leader>t"] = { "<cmd>split | terminal<cr>", "Open Terminal" },
   --- Close window
   ["<leader>c"] = { "<C-w>c", "Close Window" }, 
-
-
 }
 wk.register(git_mappings, { prefix = "<leader>" })
 wk.register(mappings, { prefix = "<leader>" })
@@ -287,6 +294,26 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
+--- Lsp which-key
+
+lsp_mappings = {
+  gD = "Go to definition", 
+  gd = "Go to declaration",
+  K = "Hover",
+  gi = "Go to implementation",
+  ["<C-g>"] = "Signature help",
+  ["<space>wa"] = "Add workspace folder",
+  ["<space>wr"] = "Remove workspace folder",
+  ["<space>wl"] = "List workspace folders",
+  ["<space>D"] = "Type definition",
+  ["<space>rn"] = "Rename",
+  ["<space>ca"] = "Code action",
+  gr = "References",
+  ["<space>f"] = "Format",
+}
+
+wk.register(lsp_mappings, { prefix = "<leader>" })
+
 
 require("nvim-lsp-installer").setup({
     automatic_installation = true, -- automatically detect which servers to install (based on which servers are set up via lspconfig)
@@ -316,7 +343,7 @@ require('gitsigns').setup {
     interval = 1000,
     follow_files = true
   },
-  current_line_blame = false, -- Toggle with ':Gitsigns toggle_current_line_blame'
+  current_line_blame = true, -- Toggle with ':Gitsigns toggle_current_line_blame'
   current_line_blame_opts = {
     virt_text = true,
     virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
@@ -360,23 +387,58 @@ require('gitsigns').setup {
       return '<Ignore>'
     end, {expr=true})
 
-    -- Actions
-    map('n', '<leader>hs', gs.stage_hunk)
-    map('n', '<leader>hr', gs.reset_hunk)
-    map('v', '<leader>hs', function() gs.stage_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
-    map('v', '<leader>hr', function() gs.reset_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
-    map('n', '<leader>hS', gs.stage_buffer)
-    map('n', '<leader>hu', gs.undo_stage_hunk)
-    map('n', '<leader>hR', gs.reset_buffer)
-    map('n', '<leader>hp', gs.preview_hunk)
-    map('n', '<leader>hb', function() gs.blame_line{full=true} end)
-    map('n', '<leader>tb', gs.toggle_current_line_blame)
-    map('n', '<leader>hd', gs.diffthis)
-    map('n', '<leader>hD', function() gs.diffthis('~') end)
-    map('n', '<leader>td', gs.toggle_deleted)
+    --- Actions
+    --- map('n', '<leader>hs', gs.stage_hunk)
+    --- map('n', '<leader>hr', gs.reset_hunk)
+    --- map('v', '<leader>hs', function() gs.stage_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
+    --- map('v', '<leader>hr', function() gs.reset_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
+    --- map('n', '<leader>hS', gs.stage_buffer)
+    --- map('n', '<leader>hu', gs.undo_stage_hunk)
+    --- map('n', '<leader>hR', gs.reset_buffer)
+    --- map('n', '<leader>hp', gs.preview_hunk)
+    --- map('n', '<leader>hb', function() gs.blame_line{full=true} end)
+    --- map('n', '<leader>tb', gs.toggle_current_line_blame)
+    --- map('n', '<leader>hd', gs.diffthis)
+    --- map('n', '<leader>hD', function() gs.diffthis('~') end)
+    --- map('n', '<leader>td', gs.toggle_deleted)
 
-    -- Text object
-    map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+    ---  Text object
+   --- map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
   end
 }
+
+
+    gitsigns_mapping = {
+        ["h"] = {
+		name="Gitsigns",
+		s = { "<cmd>lua require('gitsigns').stage_hunk()<CR>", "Stage Hunk" },
+		r = { "<cmd>lua require('gitsigns').reset_hunk()<CR>", "Reset Hunk" },
+		S = { "<cmd>lua require('gitsigns').stage_buffer()<CR>", "Stage Buffer" },
+		u = { "<cmd>lua require('gitsigns').undo_stage_hunk()<CR>", "Undo Stage Hunk" },
+		R = { "<cmd>lua require('gitsigns').reset_buffer()<CR>", "Reset Buffer" },
+		p = { "<cmd>lua require('gitsigns').preview_hunk()<CR>", "Preview Hunk" },
+		b = { "<cmd>lua require('gitsigns').blame_line(true)<CR>", "Blame" },
+		d = { "<cmd>lua require('gitsigns').diffthis()<CR>", "Diff" },
+		D = { "<cmd>lua require('gitsigns').diffthis('HEAD')<CR>", "Diff HEAD" },
+		d = { "<cmd>lua require('gitsigns').toggle_deleted()<CR>", "Toggle Deleted" },
+	        ["t"] = {
+		        name="Toggle",
+	        	b = { "<cmd>lua require('gitsigns').toggle_current_line_blame()<CR>", "Toggle Blame" },
+		        d = { "<cmd>lua require('gitsigns').toggle_deleted()<CR>", "Toggle Deleted" },
+                }
+	},
+    }
+
+    gitsigns_visual_mapping = {
+	["h"] = {
+		name="Gitsigns",
+		s = { "<cmd>lua require('gitsigns').stage_hunk({vim.fn.line('.'), vim.fn.line('v')})<CR>", "Stage Hunk" },
+		r = { "<cmd>lua require('gitsigns').reset_hunk({vim.fn.line('.'), vim.fn.line('v')})<CR>", "Reset Hunk" },
+	}
+    }
+
+    wk.register(gitsigns_mapping, { prefix = "<leader>" })
+    wk.register(gitsigns_visual_mapping, { mode = "v", prefix = "<leader>" })
+
+
 
