@@ -2,3 +2,6 @@
 	path = nvim/.config/nvim/pack/github/start/copilot.vim
 	url = https://github.com/github/copilot.vim.git
 
+[submodule "zsh/.config/zsh/plugins/zsh-autocomplete"]
+	path = zsh/.config/zsh/plugins/zsh-autocomplete
+	url = https://github.com/marlonrichert/zsh-autocomplete.git

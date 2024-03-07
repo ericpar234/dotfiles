@@ -241,21 +241,31 @@ cmp.setup({
 })
 
 
-local lspconfig = require'lspconfig'
-lspconfig.tsserver.setup {}
-lspconfig.pyright.setup {}
-lspconfig.html.setup {}
-lspconfig.cssls.setup {}
-lspconfig.jsonls.setup {}
-lspconfig.bashls.setup {}
-lspconfig.dockerls.setup {}
+require("nvim-lsp-installer").setup({
+    automatic_installation = true,
+    ui = {
+        icons = {
+            server_installed = "✓",
+            server_pending = "➜",
+            server_uninstalled = "✗"
+        }
+    }
+})
 
-lspconfig.rust_analyzer.setup {
-  -- Server-specific settings. See `:help lspconfig-setup`
-  settings = {
-    ['rust-analyzer'] = {},
-  },
-}
+require("luasnip.loaders.from_vscode").lazy_load()
+
+
+local lspconfig = require'lspconfig'
+lspconfig.jedi_language_server.setup{}
+lspconfig.bashls.setup{}
+lspconfig.clangd.setup{}
+lspconfig.cmake.setup{}
+lspconfig.dockerls.setup{}
+lspconfig.jsonls.setup{}
+lspconfig.html.setup{}
+lspconfig.zk.setup{}
+lspconfig.lua_ls.setup{}
+
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float)
@@ -313,20 +323,6 @@ lsp_mappings = {
 }
 
 wk.register(lsp_mappings, { prefix = "<leader>" })
-
-
-require("nvim-lsp-installer").setup({
-    automatic_installation = true, -- automatically detect which servers to install (based on which servers are set up via lspconfig)
-    ui = {
-        icons = {
-            server_installed = "✓",
-            server_pending = "➜",
-            server_uninstalled = "✗"
-        }
-    }
-})
-
-require("luasnip.loaders.from_vscode").lazy_load()
 
 
 require('gitsigns').setup {
