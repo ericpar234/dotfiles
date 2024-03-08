@@ -436,5 +436,10 @@ require('gitsigns').setup {
     wk.register(gitsigns_mapping, { prefix = "<leader>" })
     wk.register(gitsigns_visual_mapping, { mode = "v", prefix = "<leader>" })
 
+--- Tab buffer switching
+-- Switch to the next buffer
+vim.api.nvim_set_keymap('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true })
+-- Switch to the previous buffer
+vim.api.nvim_set_keymap('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true })
 
 
