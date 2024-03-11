@@ -19,6 +19,8 @@ if fn.empty(fn.glob(install_path)) > 0 then
   vim.cmd [[packadd packer.nvim]]
 end
 
+-- Enable Term gui colors
+vim.opt.termguicolors = true
 
 require('packer').startup(function(use)
   use 'wbthomason/packer.nvim' -- Packer manages itself
@@ -86,6 +88,8 @@ require('packer').startup(function(use)
   use { "gmr458/vscode_modern_theme.nvim" }
   use { "catppuccin/nvim", as = "catppuccin" }
 
+  use 'feline-nvim/feline.nvim'
+
   --- Telescope extensions
   use 'nvim-lua/popup.nvim'
   use 'nvim-lua/plenary.nvim'
@@ -147,8 +151,24 @@ end)
 
 require("catppuccin").setup({
 	flavor = "mocha",
-})
+  integrations = {
+    treesitter = true,
+    which_key = true,
+  },
+}
 
+)
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+    pattern = "*",
+    callback = function()
+        package.loaded["feline"] = nil
+        package.loaded["catppuccin.groups.integrations.feline"] = nil
+        require("feline").setup {
+            components = require("catppuccin.groups.integrations.feline").get(),
+        }
+    end,
+})
 
 require('nvim-web-devicons').setup {
  -- your configuration here
