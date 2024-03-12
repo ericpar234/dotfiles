@@ -1,20 +1,31 @@
+#!/bin/bash
 # Requires 
 # curl, stow, git, zsh tmux, neovim
 
-dependencies=(curl stow git zsh tmux )
-if [ -x "$(command -v apt)" ]; then
-    sudo apt update
-    sudo apt install ${dependencies[@]}
-elif [ -x "$(command -v pacman)" ]; then
-    sudo pacman -Syu
-    sudo pacman -S ${dependencies[@]}
-elif [ -x "$(command -v brew)" ]; then
-    brew install ${dependencies[@]}
-else
-    echo "No package manager found"
-    exit 1
-fi
-
+dependencies=(curl stow git zsh tmux)
+for dep in ${dependencies[@]}; do
+    if [ -x "$(command -v $dep)" ]; then
+        echo "$dep is already installed"
+    else
+        echo "$dep is not installed"
+        missing_dependencies+=($dep)
+    fi
+done
+for dep in ${missing_dependencies[@]}; do
+    echo "Installing $dep"
+  if [ -x "$(command -v apt)" ]; then
+      sudo apt update
+      sudo apt install ${dependencies[@]}
+  elif [ -x "$(command -v pacman)" ]; then
+      sudo pacman -Syu
+      sudo pacman -S ${dependencies[@]}
+  elif [ -x "$(command -v brew)" ]; then
+      brew install ${dependencies[@]}
+  else
+      echo "No package manager found"
+      exit 1
+  fi
+done
 
 # Prompt to install nvim
 if [ -x "$(command -v nvim)" ]; then
@@ -37,13 +48,33 @@ git submodule init
 git submodule update
 
 echo "Installing starship"
-
 # Install starship prompt
-curl -sS https://starship.rs/install.sh | sh
+if [ -x "$(command -v starship)" ]; then
+    echo "Starship is already installed"
+else
+    echo "Installing starship"
+    curl -sS https://starship.rs/install.sh | sh
+fi
+
+# Install nerd font
+font_name="MartianMono"
+font_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$font_name.tar.xz"
+
+mkdir "./tmp"
+echo $font_url
+echo curl -OL $font_url
+curl -OL $font_url
+echo "extract the $font_name.tar.xz"
+tar -xf $font_name.tar.xz -C ./tmp
+cp -r ./tmp/*.ttf ~/.local/share/fonts
+fc-cache -fv
+rm -rf ./tmp
+rm "$font_name.tar.xz"
+echo "Done installing $font_name"     
 
 echo "Stowing dotfiles"
 stow zsh
 stow tmux
 stow nvim
 starship
-echo "Done"
+echo "Done with stow"
