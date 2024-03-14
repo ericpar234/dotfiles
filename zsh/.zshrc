@@ -30,6 +30,9 @@ bindkey '^I' zsh-autosuggest-accept-and-complete
 bindkey "$terminfo[kcbt]" reverse-menu-complete
 
 
+# Syntax Highlighting
+source $ZSH_PLUGIN_DIRECTORY/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 setopt histignorealldups sharehistory
 
 # Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
