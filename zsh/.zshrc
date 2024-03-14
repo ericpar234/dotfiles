@@ -1,21 +1,34 @@
 # Set up the prompt
-
 export ZSH_PLUGIN_DIRECTORY=~/.config/zsh/plugins
 
+# Load zsh-autocomplete
 source $ZSH_PLUGIN_DIRECTORY/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-## tab into autocomplete menu
-bindkey '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
-# all Tab widgets
-zstyle ':autocomplete:*complete*:*' insert-unambiguous yes
-# all history widgets
-zstyle ':autocomplete:*history*:*' insert-unambiguous yes
-# ^S
-zstyle ':autocomplete:menu-search:*' insert-unambiguous yes
 
+# Load zsh-autosuggestions
+source $ZSH_PLUGIN_DIRECTORY/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# Adjust fpath for zsh-completions
 fpath=($ZSH_PLUGIN_DIRECTORY/zsh-completions/src $fpath)
 
-# auto suggestions
-source $ZSH_PLUGIN_DIRECTORY/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Configuration for zsh-autocomplete
+zstyle ':autocomplete:*complete*:*' insert-unambiguous yes
+zstyle ':autocomplete:*history*:*' insert-unambiguous yes
+zstyle ':autocomplete:menu-search:*' insert-unambiguous yes
+
+# Use Ctrl+Space to trigger completion if there's an ongoing suggestion
+bindkey '^ ' autosuggest-accept
+
+# Modify Tab behavior to accept suggestion first, then trigger completion
+function zsh-autosuggest-accept-and-complete() {
+  zle menu-complete
+  zle autosuggest-accept
+}
+zle -N zsh-autosuggest-accept-and-complete
+bindkey '^I' zsh-autosuggest-accept-and-complete
+
+# Optional: Bind Shift+Tab to reverse completion
+bindkey "$terminfo[kcbt]" reverse-menu-complete
+
 
 setopt histignorealldups sharehistory
 

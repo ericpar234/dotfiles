@@ -1,7 +1,9 @@
 [submodule "nvim/.config/pack/github/start/copilot.vim"]
 	path = nvim/.config/nvim/pack/github/start/copilot.vim
 	url = https://github.com/github/copilot.vim.git
-
+[submodule "nvim/.local/share/nvim/site/pack/packer/start/packer.nvim"]
+	path = nvim/.local/share/nvim/site/pack/packer/start/packer.nvim
+	url = https://github.com/wbthomason/packer.nvim
 [submodule "zsh/.config/zsh/plugins/zsh-autocomplete"]
 	path = zsh/.config/zsh/plugins/zsh-autocomplete
 	url = https://github.com/marlonrichert/zsh-autocomplete.git
@@ -10,13 +12,10 @@
 	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
 [submodule "zsh/.config/zsh/plugins/zsh-completions"]
 	path = zsh/.config/zsh/plugins/zsh-completions
-	url = https://github.com/zsh-users/zsh-completions
-[submodule "tmux/.tmux/plugins/tpm"]
-	path = tmux/.tmux/plugins/tpm
-	url = https://github.com/tmux-plugins/tpm.git
-[submodule "nvim/.local/share/nvim/site/pack/packer/start/packer.nvim"]
-	path = nvim/.local/share/nvim/site/pack/packer/start/packer.nvim
-	url = https://github.com/wbthomason/packer.nvim
+  url = https://github.com/zsh-users/zsh-completions
 [submodule "zsh/.config/zsh/plugins/zsh-autosuggestions"]
 	path = zsh/.config/zsh/plugins/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions.git
+[submodule "tmux/.tmux/plugins/tpm"]
+	path = tmux/.tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm.git
