@@ -66,6 +66,7 @@ echo curl -OL $font_url
 curl -OL $font_url
 echo "extract the $font_name.tar.xz"
 tar -xf $font_name.tar.xz -C ./tmp
+mkdir -p ~/.local/share/fonts
 cp -r ./tmp/*.ttf ~/.local/share/fonts
 fc-cache -fv
 rm -rf ./tmp
