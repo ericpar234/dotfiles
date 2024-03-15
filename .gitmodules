@@ -19,6 +19,3 @@
 [submodule "tmux/.tmux/plugins/tpm"]
 	path = tmux/.tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm.git
-[submodule "zsh/.config/zsh/plugins/tpm"]
-	path = zsh/.config/zsh/plugins/tpm
-	url = https://github.com/tmux-plugins/tpm.git
