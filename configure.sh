@@ -34,10 +34,12 @@ else
     # if x64 install from github
     if [ "$(uname -m)" == "x86_64" ]; then
         echo "Installing neovim for x86_64"
-        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-        chmod u+x nvim.appimage
-        ./nvim.appimage
-        rm ./nvim.appimage
+        curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz
+        tar -xf nvim-linux64.tar.gz
+        sudo cp -r nvim-linux64/* ~/.local
+        rm -rf nvim-linux64
+        rm nvim-linux64.tar.gz
+        echo "Done installing neovim"
     else
       echo "Neovim is not installed please install for your system"
     fi
@@ -77,5 +79,8 @@ echo "Stowing dotfiles"
 stow zsh
 stow tmux
 stow nvim
-starship
+stow starship
 echo "Done with stow"
+
+echo "Setting zsh as default shell"
+chsh -s $(which zsh)
