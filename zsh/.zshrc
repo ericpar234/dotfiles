@@ -28,10 +28,12 @@ bindkey '^I' zsh-autosuggest-accept-and-complete
 
 # Optional: Bind Shift+Tab to reverse completion
 bindkey "$terminfo[kcbt]" reverse-menu-complete
-
-
 # Syntax Highlighting
 source $ZSH_PLUGIN_DIRECTORY/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+
+# Add ~/.local/bin to the PATH
+export PATH=$HOME/.local/bin:$PATH
 
 setopt histignorealldups sharehistory
 
