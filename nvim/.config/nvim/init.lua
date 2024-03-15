@@ -1,4 +1,14 @@
+local fn = vim.fn
+local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
 
+print("Install path: " .. install_path)
+
+if fn.empty(fn.glob(install_path)) > 0 then
+  local result = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
+  print("Git clone result: " .. result)
+  vim.cmd [[packadd packer.nvim]]
+  print("packadd command executed")
+end
 --- Set space as the leader key
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -10,14 +20,6 @@ o.expandtab = true
 o.smartindent = true 
 o.tabstop = 2
 o.shiftwidth = 2 
-
-local fn = vim.fn
-local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
-
-if fn.empty(fn.glob(install_path)) > 0 then
-  fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
-  vim.cmd [[packadd packer.nvim]]
-end
 
 -- Enable Term gui colors
 vim.opt.termguicolors = true
