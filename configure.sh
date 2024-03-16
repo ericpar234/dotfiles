@@ -76,10 +76,10 @@ rm "$font_name.tar.xz"
 echo "Done installing $font_name"     
 
 echo "Stowing dotfiles"
-stow zsh
-stow tmux
-stow nvim
-stow starship
+stow zsh --restow
+stow tmux --restow
+stow nvim --restow
+stow starship --restow
 echo "Done with stow"
 
 echo "Setting zsh as default shell"
