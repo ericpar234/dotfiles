@@ -1,5 +1,5 @@
 --- Define vim for linter
-vim = vim or {}
+local vim = vim or {}
 
 -- Bootstrap packer.nvim
 local fn = vim.fn
@@ -105,8 +105,14 @@ require('packer').startup(function(use)
   use 'nvim-telescope/telescope-frecency.nvim'
   use 'nvim-telescope/telescope-project.nvim'
   use 'nvim-telescope/telescope-dap.nvim'
-  --- Markdown Wiki
-  --use 'vimwiki/vimwiki'
+
+  -- Auto complete in the command line
+  use {
+    'gelguy/wilder.nvim',
+    config = function()
+      -- config goes here
+    end,
+  }
 
 
   -- tmux navigation
@@ -301,49 +307,40 @@ vim.keymap.set('n', '<leader>Q', vim.diagnostic.setloclist, { desc = 'Set locati
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
-    -- Enable completion triggered by <c-x><c-o>
-    vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+    local lsp_mappings = {
+      gD            = {"Go to declaration", vim.lsp.buf.declaration},
+      gd            = {"Go to definition", vim.lsp.buf.definition},
+      K             = {"Hover", vim.lsp.buf.hover},
+      gi            = {"Go to implementation", vim.lsp.buf.implementation},
+      ['<C-g>']     = {"Signature help", vim.lsp.buf.signature_help},
+      ['<space>wa'] = {"Add workspace folder", vim.lsp.buf.add_workspace_folder},
+      ['<space>wr'] = {"Remove workspace folder", vim.lsp.buf.remove_workspace_folder},
+      ['<space>wl'] = {"List workspace folders", function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end},
+      ['<space>D']  = {"Type definition", vim.lsp.buf.type_definition},
+      ['<space>rn'] = {"Rename", vim.lsp.buf.rename},
+      ['<space>ca'] = {"Code action", vim.lsp.buf.code_action},
+      gr            = {"References", vim.lsp.buf.references},
+      ['<space>F']  = {"Format", function() vim.lsp.buf.format { async = true } end},
+    }
 
-    -- Buffer local mappings.
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { buffer = ev.buf, desc = 'Go to declaration' })
-    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-    vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-    vim.keymap.set('n', '<C-g>', vim.lsp.buf.signature_help, opts)
-    vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
-    vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
-    vim.keymap.set('n', '<space>wl', function()
-      print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    end, opts)
-    vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
-    vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
-    vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-    vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-    vim.keymap.set('n', '<space>F', function()
-      vim.lsp.buf.format { async = true }
-    end, opts)
+    -- Set the mappings with Neovim
+    for k, v in pairs(lsp_mappings) do
+      vim.keymap.set('n', k, v[2], { buffer = ev.buf, desc = v[1] })
+    end
+
+    -- Prepare which-key mapping structure
+    local wk_mappings = {}
+    for k, v in pairs(lsp_mappings) do
+      wk_mappings[k] = { v[2], v[1] }
+    end
+
+    -- Register with which-key
+    local wk = require("which-key")
+    vim.defer_fn(function()
+      wk.register(wk_mappings, { buffer = ev.buf })
+    end, 1000) -- Adjust the delay as needed
   end,
 })
-
---- Lsp which-key
-
---- lsp_mappings = {
----   gd = "Go to declaration",
----   K = "Hover",
----   gi = "Go to implementation",
----   ["<C-g>"] = "Signature help",
----   ["<space>wa"] = "Add workspace folder",
----   ["<space>wr"] = "Remove workspace folder",
----   ["<space>wl"] = "List workspace folders",
----   ["<space>D"] = "Type definition",
----   ["<space>rn"] = "Rename",
----   ["<space>ca"] = "Code action",
----   gr = "References",
----   ["<space>F"] = "Format",
---- }
---- 
---- wk.register(lsp_mappings, { prefix = "<leader>" })
 
 
 require('gitsigns').setup {
@@ -425,7 +422,7 @@ require('gitsigns').setup {
 }
 
 
-gitsigns_mapping = {
+local gitsigns_mapping = {
   ["h"] = {
     name = "Gitsigns",
     s = { "<cmd>lua require('gitsigns').stage_hunk()<CR>", "Stage Hunk" },
@@ -437,7 +434,6 @@ gitsigns_mapping = {
     b = { "<cmd>lua require('gitsigns').blame_line(true)<CR>", "Blame" },
     d = { "<cmd>lua require('gitsigns').diffthis()<CR>", "Diff" },
     D = { "<cmd>lua require('gitsigns').diffthis('HEAD')<CR>", "Diff HEAD" },
-    d = { "<cmd>lua require('gitsigns').toggle_deleted()<CR>", "Toggle Deleted" },
     ["t"] = {
       name = "Toggle",
       b = { "<cmd>lua require('gitsigns').toggle_current_line_blame()<CR>", "Toggle Blame" },
@@ -446,7 +442,7 @@ gitsigns_mapping = {
   },
 }
 
-gitsigns_visual_mapping = {
+local gitsigns_visual_mapping = {
   ["h"] = {
     name = "Gitsigns",
     s = { "<cmd>lua require('gitsigns').stage_hunk({vim.fn.line('.'), vim.fn.line('v')})<CR>", "Stage Hunk" },
@@ -462,3 +458,32 @@ wk.register(gitsigns_visual_mapping, { mode = "v", prefix = "<leader>" })
 vim.api.nvim_set_keymap('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true })
 -- Switch to the previous buffer
 vim.api.nvim_set_keymap('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true })
+
+local wilder = require('wilder')
+wilder.setup({
+  modes = { ':', '/', '?', '!' },
+  separator = ' ',
+  next_key = '<Tab>',
+  prev_key = '<S-Tab>',
+  quick_match_key = '<C-j>',
+  cycle_prev_key = '<C-k>',
+  cycle_next_key = '<C-j>',
+  cleanup = true,
+  pipe_hl_groups = { 'Directory', 'ErrorMsg', 'WildMenu' },
+  setup = {
+    ['*'] = {
+      after = function()
+        vim.cmd [[set wildcharm=<Tab>]]
+      end,
+    },
+  },
+})
+
+wilder.set_option('renderer', wilder.renderer_mux({
+  [':'] = wilder.popupmenu_renderer({
+    highlighter = wilder.basic_highlighter(),
+  }),
+  ['/'] = wilder.wildmenu_renderer({
+    highlighter = wilder.basic_highlighter(),
+  }),
+}))

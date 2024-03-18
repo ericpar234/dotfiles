@@ -36,7 +36,7 @@ else
         echo "Installing neovim for x86_64"
         curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz
         tar -xf nvim-linux64.tar.gz
-        sudo cp -r nvim-linux64/* ~/.local
+        cp -r nvim-linux64/* ~/.local
         rm -rf nvim-linux64
         rm nvim-linux64.tar.gz
         echo "Done installing neovim"
