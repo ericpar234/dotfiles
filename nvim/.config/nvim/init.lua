@@ -117,7 +117,7 @@ require('packer').startup(function(use)
   ---  }
 
   --- Directory Buffer Editor
-  --use 'stevearc/oil.nvim'
+  use 'stevearc/oil.nvim'
 
   --- Command Line popup
   use {
@@ -189,7 +189,7 @@ require('packer').startup(function(use)
   }
 end)
 
----require("oil").setup()
+require("oil").setup()
 
 require("catppuccin").setup({
   flavor = "mocha",
@@ -266,13 +266,7 @@ local mappings = {
     z = { "<cmd>Telescope fzf writer<cr>", "Find FZF Writer" },
   },
   ["e"] = { "<cmd>NvimTreeToggle<cr>", "Toggle File Explorer" },
-  ["q"] = { "<cmd>q<cr>", "Quit" },
-  ["w"] = { "<cmd>w<cr>", "Save" },
-  ["x"] = { "<cmd>x<cr>", "Save and Quit" },
-  ["o"] = { "<cmd>e .<cr>", "Open File Explorer" },
   ["t"] = { "<cmd>split | terminal<cr>", "Open Terminal" },
-  --- Close window
-  ["c"] = { "<C-w>c", "Close Window" },
 }
 
 wk.register(git_mappings, { prefix = "<leader>" })
@@ -368,10 +362,10 @@ lspconfig.ansiblels.setup {}
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic float' })
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic' })
-vim.keymap.set('n', '<leader>Q', vim.diagnostic.setloclist, { desc = 'Set location list' })
+vim.keymap.set('n', '<leader>Q', vim.diagnostic.setloclist, { desc = 'Toggle diagnostic list' })
 
 -- Use LspAttach autocommand to only map the following keys
--- after the language server attaches to the current buffer
+-- after the language server attaches to the current buffer:quick_match_key
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
