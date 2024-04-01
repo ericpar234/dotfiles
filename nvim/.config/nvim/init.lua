@@ -130,7 +130,7 @@ require('packer').startup(function(use)
   }
   -- tmux navigation
   use 'christoomey/vim-tmux-navigator'
-  
+
   -- Ansible file detection
   use 'mfussenegger/nvim-ansible'
 
@@ -139,6 +139,8 @@ require('packer').startup(function(use)
 
   -- Icons in suggestions
   use 'onsails/lspkind.nvim'
+
+  use 'folke/neodev.nvim'
 
   -- Dashboard
   use {
@@ -313,6 +315,8 @@ cmp.setup({
     { name = 'buffer' },
   }),
   formatting = {
+    fields = { 'abbr', 'kind', 'menu' },
+    expandable_indicator = true,
     format = lspkind.cmp_format({
     mode = 'symbol', -- show only symbol annotations
     maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
@@ -345,6 +349,10 @@ require("nvim-lsp-installer").setup({
 
 require("luasnip.loaders.from_vscode").lazy_load()
 
+
+require("neodev").setup({
+  -- add any options here, or leave empty to use the default settings
+})
 
 local lspconfig = require 'lspconfig'
 lspconfig.jedi_language_server.setup {}
