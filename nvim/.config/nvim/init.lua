@@ -26,7 +26,7 @@ o.shiftwidth = 2
 
 -- Enable Term gui colors
 vim.opt.termguicolors = true
-
+-- TODO: Move to lazy
 require('packer').startup(function(use)
   use 'wbthomason/packer.nvim' -- Packer manages itself
   -- Add your plugins here
@@ -158,6 +158,14 @@ require('packer').startup(function(use)
     requires = { 'nvim-lua/plenary.nvim', 'zbirenbaum/copilot.lua' }
   }
 
+  use {
+    'folke/todo-comments.nvim',
+    requires = {'nvim-lua/plenary.nvim'},
+  }
+  use {
+    'folke/trouble.nvim',
+    requires = { 'nvim-tree/nvim-web-devicons' },
+  }
   -- Dashboard
   use {
     'nvimdev/dashboard-nvim',
@@ -434,7 +442,11 @@ lspconfig.ansiblels.setup {}
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic float' })
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic' })
-vim.keymap.set('n', '<leader>Q', vim.diagnostic.setloclist, { desc = 'Toggle diagnostic list' })
+vim.keymap.set('n', '<leader>Q', '<cmd>TroubleToggle<CR>', { desc = 'Toggle Trouble' })
+
+
+vim.keymap.set('n', '<leader>\"', "<cmd>split<CR>", { desc = 'Horizontal split' })
+vim.keymap.set('n', '<leader>%', "<cmd>vsplit<CR>", { desc = 'Vertical split' })
 
 -- Use LspAttach autocommand to only map the following keys
 -- after the language server attaches to the current buffer:quick_match_key
@@ -693,7 +705,7 @@ require('litee.gh').setup({
       -- and submitted review bodys.
       details = "d",
       -- inside a convo buffer, submit a comment
-      submit_comment = "<C-s>",
+      submit_comment = "<cr>",
       -- inside a convo buffer, when your cursor is ontop of a comment, open
       -- up a set of actions that can be performed.
       actions = "<C-a>",
@@ -706,7 +718,7 @@ require('litee.gh').setup({
   }
 })
 
-local chat = require("CopilotChat").setup({
+require("CopilotChat").setup({
   mappings = {
     reset = {
       normal ='<C-n>',
@@ -728,3 +740,10 @@ vim.keymap.set("n", "<leader>cct", "<cmd>CopilotChatToggle<cr>", {desc = "Copilo
 vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.select").buffer) end, {desc = "Copilot Quick Chat"} )
 vim.keymap.set("v", "<leader>ccq", function() quickChat(require("CopilotChat.select").visual) end, {desc = "Copilot Quick Chat"} )
 
+
+require("todo-comments").setup {
+}
+vim.keymap.set("n", "<leader><leader>td", "<cmd>TodoTelescope<cr>", {desc = "Todo Telescope"} )
+vim.keymap.set("n", "<leader>Td", "<cmd>TodoTrouble<cr>", {desc = "Todo Loc List"} )
+require('trouble').setup {
+}
