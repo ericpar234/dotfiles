@@ -24,6 +24,7 @@ o.smartindent = true
 o.tabstop = 2
 o.shiftwidth = 2
 
+
 -- Enable Term gui colors
 vim.opt.termguicolors = true
 -- TODO: Move to lazy
@@ -107,15 +108,6 @@ require('packer').startup(function(use)
     "nvim-telescope/telescope-file-browser.nvim",
     requires = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" }
   }
-
-  -- Auto complete in the command line
-  ---  use {
-  ---    'gelguy/wilder.nvim',
-  ---    config = function()
-  ---      -- config goes here
-  ---    end,
-  ---  }
-
   --- Directory Buffer Editor
   use 'stevearc/oil.nvim'
 
@@ -166,6 +158,10 @@ require('packer').startup(function(use)
     'folke/trouble.nvim',
     requires = { 'nvim-tree/nvim-web-devicons' },
   }
+
+  use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
+  use 'luukvbaal/statuscol.nvim'
+
   -- Dashboard
   use {
     'nvimdev/dashboard-nvim',
@@ -422,9 +418,7 @@ require("nvim-lsp-installer").setup({
 require("luasnip.loaders.from_vscode").lazy_load()
 
 
-require("neodev").setup({
-  -- add any options here, or leave empty to use the default settings
-})
+require("neodev").setup({})
 
 local lspconfig = require 'lspconfig'
 lspconfig.jedi_language_server.setup {}
@@ -580,36 +574,6 @@ require('gitsigns').setup {
   end
 }
 
-
----local wilder = require('wilder')
----wilder.setup({
----  modes = { ':', '/', '?', '!' },
----  separator = ' ',
----  next_key = '<Tab>',
----  prev_key = '<S-Tab>',
----  quick_match_key = '<C-j>',
----  cycle_prev_key = '<C-k>',
----  cycle_next_key = '<C-j>',
----  cleanup = true,
----  pipe_hl_groups = { 'Directory', 'ErrorMsg', 'WildMenu' },
----  setup = {
----    ['*'] = {
----      after = function()
----        vim.cmd [[set wildcharm=<Tab>]]
----      end,
----    },
----  },
----})
----
----wilder.set_option('renderer', wilder.renderer_mux({
----  [':'] = wilder.popupmenu_renderer({
----    highlighter = wilder.basic_highlighter(),
----  }),
----  ['/'] = wilder.wildmenu_renderer({
----    highlighter = wilder.basic_highlighter(),
----  }),
----}))
-
 require("ibl").setup()
 require("ibl").overwrite {
   exclude = {
@@ -752,10 +716,49 @@ vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.sel
 vim.keymap.set("v", "<leader>ccq", function() quickChat(require("CopilotChat.select").visual) end, {desc = "Copilot Quick Chat"} )
 
 
-require("todo-comments").setup {
-}
+require("todo-comments").setup {}
 vim.keymap.set("n", "<leader><leader>td", "<cmd>TodoTelescope<cr>", {desc = "Todo Telescope"} )
 vim.keymap.set("n", "<leader>Td", "<cmd>TodoTrouble<cr>", {desc = "Todo Loc List"} )
-require('trouble').setup {
+require('trouble').setup {}
+
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
+
+-- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+
+vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
+
+-- Option 2: nvim lsp as LSP client
+-- Tell the server the capability of foldingRange,
+-- Neovim hasn't added foldingRange to default capabilities, users must add it manually
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.foldingRange = {
+    dynamicRegistration = false,
+    lineFoldingOnly = true
 }
+local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
+for _, ls in ipairs(language_servers) do
+    require('lspconfig')[ls].setup({
+        capabilities = capabilities
+        -- you can add other fields for setting up lsp server in this table
+    })
+end
+require('ufo').setup()
+
+local builtin = require('statuscol.builtin')
+require('statuscol').setup({
+    segments = {
+    { text = { builtin.foldfunc }, click = 'v:lua.ScFa' },
+    { text = { '%s' }, click = 'v:lua.ScSa' },
+    {
+      text = { builtin.lnumfunc, ' ' },
+      condition = { true, builtin.not_empty },
+      click = 'v:lua.ScLa',
+    },
+  }
+})
 
