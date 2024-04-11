@@ -492,6 +492,17 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
+local cmp_nvim_lsp = require "cmp_nvim_lsp"
+
+require("lspconfig").clangd.setup {
+  on_attach = on_attach,
+  capabilities = cmp_nvim_lsp.default_capabilities(),
+  cmd = {
+    "clangd",
+    "--offset-encoding=utf-16",
+  },
+}
+
 require('gitsigns').setup {
   signs = {
     add = { hl = 'GitSignsAdd', text = '│', numhl = 'GitSignsAddNr', linehl = 'GitSignsAddLn' },
@@ -747,3 +758,4 @@ vim.keymap.set("n", "<leader><leader>td", "<cmd>TodoTelescope<cr>", {desc = "Tod
 vim.keymap.set("n", "<leader>Td", "<cmd>TodoTrouble<cr>", {desc = "Todo Loc List"} )
 require('trouble').setup {
 }
+
