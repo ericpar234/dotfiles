@@ -33,7 +33,8 @@ require('packer').startup(function(use)
   -- Add your plugins here
 
   use {
-    "williamboman/nvim-lsp-installer",
+    "williamboman/mason-lspconfig.nvim",
+    "williamboman/mason.nvim",
     "neovim/nvim-lspconfig",
   }
 
@@ -123,9 +124,6 @@ require('packer').startup(function(use)
   -- tmux navigation
   use 'christoomey/vim-tmux-navigator'
 
-  -- Ansible file detection
-  use 'mfussenegger/nvim-ansible'
-
   -- Indents
   use 'lukas-reineke/indent-blankline.nvim'
 
@@ -138,10 +136,10 @@ require('packer').startup(function(use)
   -- copilot
   use 'zbirenbaum/copilot.lua'
 
-  -- Github 
+  -- Github
   use {
     'ldelossa/gh.nvim',
-     requires = { { 'ldelossa/litee.nvim' } }
+    requires = { { 'ldelossa/litee.nvim' } }
   }
 
   use {
@@ -152,14 +150,14 @@ require('packer').startup(function(use)
 
   use {
     'folke/todo-comments.nvim',
-    requires = {'nvim-lua/plenary.nvim'},
+    requires = { 'nvim-lua/plenary.nvim' },
   }
   use {
     'folke/trouble.nvim',
     requires = { 'nvim-tree/nvim-web-devicons' },
   }
 
-  use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
+  use { 'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async' }
   use 'luukvbaal/statuscol.nvim'
 
   -- Dashboard
@@ -353,7 +351,7 @@ vim.api.nvim_set_keymap('n', '<C-l>', '<C-w>l', { noremap = true, silent = true 
 -- Buffer navigation
 vim.api.nvim_set_keymap('n', '<leader>bn', ':bnext<CR>', { noremap = true, silent = true, desc = "Next buffer" })
 vim.api.nvim_set_keymap('n', '<leader>bp', ':bprevious<CR>', { noremap = true, silent = true, desc = "Previous buffer" })
-vim.api.nvim_set_keymap('n', '<leader>bd', ':bd<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+vim.api.nvim_set_keymap('n', '<leader>bd', ':bp|bd#<CR>', { noremap = true, silent = true, desc = "Delete buffer" })
 
 --- Tab buffer switching
 -- Switch to the next buffer
@@ -386,39 +384,109 @@ cmp.setup({
     fields = { 'abbr', 'kind', 'menu' },
     expandable_indicator = true,
     format = lspkind.cmp_format({
-    mode = 'symbol', -- show only symbol annotations
-    maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
-                   -- can also be a function to dynamically calculate max width such as 
-                   -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
-    ellipsis_char = '...', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
-    show_labelDetails = true, -- show labelDetails in menu. Disabled by default
+      mode = 'symbol', -- show only symbol annotations
+      maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      -- can also be a function to dynamically calculate max width such as
+      -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
+      ellipsis_char = '...',  -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      show_labelDetails = true, -- show labelDetails in menu. Disabled by default
 
-    -- The function below will be called before any actual modifications from lspkind
-    -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
-    --- before = function (entry, vim_item)
-    ---  ...
-    ---  return vim_item
-    ---end
+      -- The function below will be called before any actual modifications from lspkind
+      -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
+      --- before = function (entry, vim_item)
+      ---  ...
+      ---  return vim_item
+      ---end
     })
-  }
-})
-
-
-require("nvim-lsp-installer").setup({
-  automatic_installation = true,
-  ui = {
-    icons = {
-      server_installed = "✓",
-      server_pending = "➜",
-      server_uninstalled = "✗"
-    }
   }
 })
 
 require("luasnip.loaders.from_vscode").lazy_load()
 
-
 require("neodev").setup({})
+vim.lsp.start({
+  name = "lua-language-server",
+  cmd = { "lua-language-server" },
+  before_init = require("neodev.lsp").before_init,
+  root_dir = vim.fn.getcwd(),
+  settings = { Lua = {} },
+})
+
+require("mason").setup({
+  ui = {
+    icons = {
+      package_installed = "✓",
+      package_pending = "➜",
+      package_uninstalled = "✗"
+    }
+  }
+})
+require("mason-lspconfig").setup({
+  -- your configuration here
+})
+
+-- Ansible Lsp
+-- Function to check if the content is likely part of an Ansible playbook
+local function is_ansible(content)
+  local ansible_keywords = {
+    "hosts:",
+    "tasks:",
+    "handlers:",
+    "vars:",
+    "include:",
+    "roles:",
+    "become:",
+    "ansible.builtin."
+  }
+  for _, keyword in ipairs(ansible_keywords) do
+    if content:match(keyword) then
+      return true
+    end
+  end
+  return false
+end
+
+-- Custom filetype detection
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = "*.yml,*.yaml",
+  callback = function(args)
+    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false)     -- Check first 10 lines
+    local content = table.concat(lines, "\n")
+    if is_ansible(content) then
+      vim.bo[args.buf].filetype = 'yaml.ansible'
+    else
+      vim.bo[args.buf].filetype = 'yaml'
+    end
+  end
+}) -- LSP setup specific for Ansible if the filetype is ansible.yaml
+vim.api.nvim_create_autocmd("BufNewFile", {
+  pattern = "*.yml,*.yaml",
+  callback = function(args)
+    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false)     -- Check first 10 lines
+    local content = table.concat(lines, "\n")
+    if is_ansible(content) then
+      vim.bo[args.buf].filetype = 'ansible.yaml'
+    else
+      vim.bo[args.buf].filetype = 'yaml'
+    end
+  end
+}) -- LSP setup specific for Ansible if the filetype is ansible.yaml
+
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "ansible.yaml",
+  callback = function()
+    require('lspconfig')['ansiblels'].setup {
+      settings = {
+        ansible = {
+          ansible = { path = "ansible" },
+          ansibleLint = { enabled = true, path = "ansible-lint" },
+          python = { interpreterPath = "python" }
+        }
+      }
+    }
+  end
+})
 
 local lspconfig = require 'lspconfig'
 lspconfig.jedi_language_server.setup {}
@@ -431,6 +499,19 @@ lspconfig.html.setup {}
 lspconfig.zk.setup {}
 lspconfig.lua_ls.setup {}
 lspconfig.ansiblels.setup {}
+
+local signs = {
+    Error = " ",
+    Warn = "",
+    Hint = " ",
+    Info = " "
+}
+
+for type, icon in pairs(signs) do
+    local hl = "DiagnosticSign" .. type
+    vim.fn.sign_define(hl, {text = icon, texthl = hl, numhl = hl})
+end
+
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic float' })
@@ -498,41 +579,15 @@ require("lspconfig").clangd.setup {
 }
 
 require('gitsigns').setup {
-  signs = {
-    add = { hl = 'GitSignsAdd', text = '│', numhl = 'GitSignsAddNr', linehl = 'GitSignsAddLn' },
-    change = { hl = 'GitSignsChange', text = '│', numhl = 'GitSignsChangeNr', linehl = 'GitSignsChangeLn' },
-    delete = { hl = 'GitSignsDelete', text = '_', numhl = 'GitSignsDeleteNr', linehl = 'GitSignsDeleteLn' },
-    topdelete = { hl = 'GitSignsDelete', text = '‾', numhl = 'GitSignsDeleteNr', linehl = 'GitSignsDeleteLn' },
-    changedelete = { hl = 'GitSignsChange', text = '~', numhl = 'GitSignsChangeNr', linehl = 'GitSignsChangeLn' },
-  },
-  numhl = false,
-  linehl = false,
-  watch_gitdir = {
-    interval = 1000,
-    follow_files = true
-  },
-  current_line_blame = true, -- Toggle with ':Gitsigns toggle_current_line_blame'
+  current_line_blame = true,
   current_line_blame_opts = {
     virt_text = true,
-    virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
-    delay = 200,
+    virt_text_pos = 'eol',
+    delay = 1000,
   },
   current_line_blame_formatter = '<author>, <author_time:%Y-%m-%d> - <summary>',
-  sign_priority = 6,
-  update_debounce = 100,
-  status_formatter = nil, -- Use default
-  max_file_length = 40000,
-  preview_config = {
-    -- Options passed to nvim_open_win
-    border = 'single',
-    style = 'minimal',
-    relative = 'cursor',
-    row = 0,
-    col = 1
-  },
-  yadm = {
-    enable = false,
-  },
+
+
   on_attach = function(bufnr)
     local gs = package.loaded.gitsigns
 
@@ -564,10 +619,10 @@ require('gitsigns').setup {
     map('n', '<leader>hR', gs.reset_buffer, { desc = "Reset Buffer" })
     map('n', '<leader>hp', gs.preview_hunk, { desc = "Preview Hunk" })
     map('n', '<leader>hb', function() gs.blame_line { full = true } end, { desc = "Blame" })
-    map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = "Toggle Blame" })
+    map('n', '<leader>htb', gs.toggle_current_line_blame, { desc = "Toggle Blame" })
     map('n', '<leader>hd', gs.diffthis, { desc = "Diff" })
     map('n', '<leader>hD', function() gs.diffthis('~') end, { desc = "Diff HEAD" })
-    map('n', '<leader>td', gs.toggle_deleted, { desc = "Toggle Deleted" })
+    map('n', '<leader>htd', gs.toggle_deleted, { desc = "Toggle Deleted" })
 
     --- Text object
     map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
@@ -577,11 +632,8 @@ require('gitsigns').setup {
 require("ibl").setup()
 require("ibl").overwrite {
   exclude = {
-    filetypes = { "NvimTree", "dashboard", "packer"},
+    filetypes = { "NvimTree", "dashboard", "packer" },
     buftypes = { "terminal" },
-  },
-  indent = {
-    char = '┆',
   },
 }
 
@@ -596,6 +648,18 @@ require("noice").setup({
       ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
     },
   },
+  cmdline = {
+    format = {
+      cmdline = { pattern = "^:", icon = "", lang = "vim" },
+      search_down = { kind = "search", pattern = "^/", icon = " ", lang = "regex", view = "cmdline" },
+      search_up = { kind = "search", pattern = "^%?", icon = " ", lang = "regex", view = "cmdline" },
+      filter = { pattern = "^:%s*!", icon = "$", lang = "bash" },
+      lua = { pattern = { "^:%s*lua%s+", "^:%s*lua%s*=%s*", "^:%s*=%s*" }, icon = "", lang = "lua" },
+      help = { pattern = "^:%s*he?l?p?%s+", icon = "" },
+      input = {}, -- Used by input()
+      substitue = { kind = "search", pattern = "^:%%?s/", icon = "", lang = "regex", view = "cmdline" },
+    },
+  },
   views = {
     cmdline_popup = {
       position = {
@@ -607,7 +671,7 @@ require("noice").setup({
         padding = { 1, 2 },
       },
       win_options = {
-       winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder",
+        winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder",
       },
     },
     popupmenu = {
@@ -640,68 +704,95 @@ require("noice").setup({
         find = "written",
       },
       opts = { skip = true },
-    }
-  },
+    },
+
+    --- Route long messages to split
+    {
+      filter = {
+        event = "msg_show",
+        any = { { min_height = 5 }, { min_width = 200 } },
+        ["not"] = {
+          kind = { "confirm", "confirm_sub", "return_prompt", "quickfix", "search_count" },
+        },
+        blocking = false,
+      },
+      view = "messages",
+      opts = { stop = true },
+    },
+
+    --- Anoying Messages
+    {
+      filter = {
+        event = "msg_show",
+        any = {
+          { find = "; after #%d+" },
+          { find = "; before #%d+" },
+          { find = "fewer lines" },
+        },
+      },
+      view = "messages",
+      opts = { skip = true },
+    },
+  }
 })
 
-vim.keymap.set("n", "<leader>nd", "<cmd>Noice dismiss<cr>", {desc = "Dismiss noice"} )
-vim.keymap.set("n", "<leader>nh", "<cmd>Noice history<cr>", {desc = "Noice history"} )
+vim.keymap.set("n", "<leader>nd", "<cmd>Noice dismiss<cr>", { desc = "Dismiss noice" })
+vim.keymap.set("n", "<leader>nh", "<cmd>Noice history<cr>", { desc = "Noice history" })
 
 -- Github
 require('litee.lib').setup()
 require('litee.gh').setup({
   -- deprecated, around for compatability for now.
-  jump_mode   = "invoking",
+  jump_mode             = "invoking",
   -- remap the arrow keys to resize any litee.nvim windows.
-  map_resize_keys = false,
+  map_resize_keys       = false,
   -- do not map any keys inside any gh.nvim buffers.
-  disable_keymaps = false,
+  disable_keymaps       = false,
   -- the icon set to use.
-  icon_set = "default",
+  icon_set              = "default",
   -- any custom icons to use.
-  icon_set_custom = nil,
+  icon_set_custom       = nil,
   -- whether to register the @username and #issue_number omnifunc completion
   -- in buffers which start with .git/
   git_buffer_completion = true,
   -- defines keymaps in gh.nvim buffers.
-  keymaps = {
-      -- when inside a gh.nvim panel, this key will open a node if it has
-      -- any futher functionality. for example, hitting <CR> on a commit node
-      -- will open the commit's changed files in a new gh.nvim panel.
-      open = "<CR>",
-      -- when inside a gh.nvim panel, expand a collapsed node
-      expand = "zo",
-      -- when inside a gh.nvim panel, collpased and expanded node
-      collapse = "zc",
-      -- when cursor is over a "#1234" formatted issue or PR, open its details
-      -- and comments in a new tab.
-      goto_issue = "gd",
-      -- show any details about a node, typically, this reveals commit messages
-      -- and submitted review bodys.
-      details = "d",
-      -- inside a convo buffer, submit a comment
-      submit_comment = "<cr>",
-      -- inside a convo buffer, when your cursor is ontop of a comment, open
-      -- up a set of actions that can be performed.
-      actions = "<C-a>",
-      -- inside a thread convo buffer, resolve the thread.
-      resolve_thread = "<C-r>",
-      -- inside a gh.nvim panel, if possible, open the node's web URL in your
-      -- browser. useful particularily for digging into external failed CI
-      -- checks.
-      goto_web = "gx"
+  keymaps               = {
+    -- when inside a gh.nvim panel, this key will open a node if it has
+    -- any futher functionality. for example, hitting <CR> on a commit node
+    -- will open the commit's changed files in a new gh.nvim panel.
+    open = "<CR>",
+    -- when inside a gh.nvim panel, expand a collapsed node
+    expand = "zo",
+    -- when inside a gh.nvim panel, collpased and expanded node
+    collapse = "zc",
+    -- when cursor is over a "#1234" formatted issue or PR, open its details
+    -- and comments in a new tab.
+    goto_issue = "gd",
+    -- show any details about a node, typically, this reveals commit messages
+    -- and submitted review bodys.
+    details = "d",
+    -- inside a convo buffer, submit a comment
+    submit_comment = "<cr>",
+    -- inside a convo buffer, when your cursor is ontop of a comment, open
+    -- up a set of actions that can be performed.
+    actions = "<C-a>",
+    -- inside a thread convo buffer, resolve the thread.
+    resolve_thread = "<C-r>",
+    -- inside a gh.nvim panel, if possible, open the node's web URL in your
+    -- browser. useful particularily for digging into external failed CI
+    -- checks.
+    goto_web = "gx"
   }
 })
 
 require("CopilotChat").setup({
   mappings = {
     reset = {
-      normal ='<C-n>',
+      normal = '<C-n>',
       insert = '<C-n>'
-      },
-
     },
-  })
+  },
+})
 
 local function quickChat(selection)
   local input = vim.fn.input("Quick Chat: ")
@@ -710,19 +801,41 @@ local function quickChat(selection)
   end
 end
 
-vim.keymap.set("n", "<leader>cce", "<cmd>CopilotChatExplain<cr>", {desc = "Copilot Chat Explain"} )
-vim.keymap.set("n", "<leader>cct", "<cmd>CopilotChatToggle<cr>", {desc = "Copilot Chat Toggle"} )
-vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.select").buffer) end, {desc = "Copilot Quick Chat"} )
-vim.keymap.set("v", "<leader>ccq", function() quickChat(require("CopilotChat.select").visual) end, {desc = "Copilot Quick Chat"} )
 
+vim.keymap.set("n", "<leader>cce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot Chat Explain" })
+vim.keymap.set("n", "<leader>cct", "<cmd>CopilotChatToggle<cr>", { desc = "Copilot Chat Toggle" })
+vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.select").buffer) end,
+  { desc = "Copilot Quick Chat" })
+vim.keymap.set("v", "<leader>ccq", function() quickChat(require("CopilotChat.select").visual) end,
+  { desc = "Copilot Quick Chat" })
+vim.keymap.set("v", "<leader>cce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot Chat Explain" })
+vim.keymap.set("n", "<leader>ccp", function()
+  local actions = require("CopilotChat.actions")
+  require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+ end, { desc = "Copilot Chat Prompt" })
+
+vim.api.nvim_create_autocmd('BufEnter', {
+    pattern = 'copilot-*',
+    callback = function()
+      -- turn off line number, status bar for this buffer
+
+      vim.wo.number = false
+      vim.wo.relativenumber = false
+      vim.wo.signcolumn = "no"
+      vim.wo.cursorline = false
+
+      -- Set the width of the buffer to be 1/3 of the screen 
+      vim.api.nvim_win_set_width(0, math.floor(vim.o.columns / 3))
+    end
+})
 
 require("todo-comments").setup {}
-vim.keymap.set("n", "<leader><leader>td", "<cmd>TodoTelescope<cr>", {desc = "Todo Telescope"} )
-vim.keymap.set("n", "<leader>Td", "<cmd>TodoTrouble<cr>", {desc = "Todo Loc List"} )
+vim.keymap.set("n", "<leader><leader>td", "<cmd>TodoTelescope<cr>", { desc = "Todo Telescope" })
+vim.keymap.set("n", "<leader>Td", "<cmd>TodoTrouble<cr>", { desc = "Todo Loc List" })
 require('trouble').setup {}
 
 vim.o.foldcolumn = '1' -- '0' is not bad
-vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevel = 99   -- Using ufo provider need a large value, feel free to decrease the value
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
@@ -737,62 +850,58 @@ vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 -- Neovim hasn't added foldingRange to default capabilities, users must add it manually
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.foldingRange = {
-    dynamicRegistration = false,
-    lineFoldingOnly = true
+  dynamicRegistration = false,
+  lineFoldingOnly = true
 }
 local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
 for _, ls in ipairs(language_servers) do
-    require('lspconfig')[ls].setup({
-        capabilities = capabilities
-        -- you can add other fields for setting up lsp server in this table
-    })
+  require('lspconfig')[ls].setup({
+    capabilities = capabilities
+    -- you can add other fields for setting up lsp server in this table
+  })
 end
 
 local handler = function(virtText, lnum, endLnum, width, truncate)
-    local newVirtText = {}
-    local suffix = (' 󰁂 %d '):format(endLnum - lnum)
-    local sufWidth = vim.fn.strdisplaywidth(suffix)
-    local targetWidth = width - sufWidth
-    local curWidth = 0
-    for _, chunk in ipairs(virtText) do
-        local chunkText = chunk[1]
-        local chunkWidth = vim.fn.strdisplaywidth(chunkText)
-        if targetWidth > curWidth + chunkWidth then
-            table.insert(newVirtText, chunk)
-        else
-            chunkText = truncate(chunkText, targetWidth - curWidth)
-            local hlGroup = chunk[2]
-            table.insert(newVirtText, {chunkText, hlGroup})
-            chunkWidth = vim.fn.strdisplaywidth(chunkText)
-            -- str width returned from truncate() may less than 2nd argument, need padding
-            if curWidth + chunkWidth < targetWidth then
-                suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
-            end
-            break
-        end
-        curWidth = curWidth + chunkWidth
+  local newVirtText = {}
+  local suffix = (' 󰁂 %d '):format(endLnum - lnum)
+  local sufWidth = vim.fn.strdisplaywidth(suffix)
+  local targetWidth = width - sufWidth
+  local curWidth = 0
+  for _, chunk in ipairs(virtText) do
+    local chunkText = chunk[1]
+    local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+    if targetWidth > curWidth + chunkWidth then
+      table.insert(newVirtText, chunk)
+    else
+      chunkText = truncate(chunkText, targetWidth - curWidth)
+      local hlGroup = chunk[2]
+      table.insert(newVirtText, { chunkText, hlGroup })
+      chunkWidth = vim.fn.strdisplaywidth(chunkText)
+      -- str width returned from truncate() may less than 2nd argument, need padding
+      if curWidth + chunkWidth < targetWidth then
+        suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
+      end
+      break
     end
-    table.insert(newVirtText, {suffix, 'MoreMsg'})
-    return newVirtText
+    curWidth = curWidth + chunkWidth
+  end
+  table.insert(newVirtText, { suffix, 'MoreMsg' })
+  return newVirtText
 end
 
-
 require('ufo').setup({
-       fold_virt_text_handler = handler,
-    }
-)
-
+  fold_virt_text_handler = handler,
+})
 
 local builtin = require('statuscol.builtin')
 require('statuscol').setup({
-    segments = {
-    { text = { builtin.foldfunc }, click = 'v:lua.ScFa' },
-    { text = { '%s' }, click = 'v:lua.ScSa' },
-    {
-      text = { builtin.lnumfunc, ' ' },
-      condition = { true, builtin.not_empty },
-      click = 'v:lua.ScLa',
-    },
-  }
+		segments = {
+			{ text = { "%s" },             click = "v:lua.ScSa" },
+			{ text = { builtin.lnumfunc }, click = "v:lua.ScLa", },
+			{
+				text = { " ", builtin.foldfunc, " " },
+				condition = { builtin.not_empty, true, builtin.not_empty },
+				click = "v:lua.ScFa"
+			},
+    }
 })
-
