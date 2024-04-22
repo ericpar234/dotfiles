@@ -658,6 +658,8 @@ require("noice").setup({
       help = { pattern = "^:%s*he?l?p?%s+", icon = "" },
       input = {}, -- Used by input()
       substitue = { kind = "search", pattern = "^:%%?s/", icon = "", lang = "regex", view = "cmdline" },
+      -- also pick up the ask to replace message from nvim ie replace with y/n/a/q 
+
     },
   },
   views = {
@@ -704,6 +706,14 @@ require("noice").setup({
         find = "written",
       },
       opts = { skip = true },
+    },
+
+    {
+      filter = {
+        event = "msg_show",
+        find = "replace with",
+      },
+      view = "cmdline",
     },
 
     --- Route long messages to split
