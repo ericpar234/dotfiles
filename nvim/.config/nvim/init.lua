@@ -160,6 +160,13 @@ require('packer').startup(function(use)
   use { 'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async' }
   use 'luukvbaal/statuscol.nvim'
 
+
+  use {
+      'numToStr/Comment.nvim',
+      config = function()
+          require('Comment').setup()
+      end
+  }
   -- Dashboard
   use {
     'nvimdev/dashboard-nvim',
@@ -491,7 +498,11 @@ vim.api.nvim_create_autocmd("FileType", {
 local lspconfig = require 'lspconfig'
 lspconfig.jedi_language_server.setup {}
 lspconfig.bashls.setup {}
-lspconfig.clangd.setup {}
+lspconfig.clangd.setup {
+  cmd = { "clangd", "--background-index" },
+  filetypes = { "c", "cpp", "objc", "objcpp" },
+  root_dir = lspconfig.util.root_pattern("compile_commands.json", ".git"),
+}
 lspconfig.cmake.setup {}
 lspconfig.dockerls.setup {}
 lspconfig.jsonls.setup {}
@@ -499,6 +510,10 @@ lspconfig.html.setup {}
 lspconfig.zk.setup {}
 lspconfig.lua_ls.setup {}
 lspconfig.ansiblels.setup {}
+--- go
+lspconfig.gopls.setup {
+  cmd = { "gopls", "serve" },
+}
 
 local signs = {
     Error = " ",
@@ -658,7 +673,6 @@ require("noice").setup({
       help = { pattern = "^:%s*he?l?p?%s+", icon = "" },
       input = {}, -- Used by input()
       substitue = { kind = "search", pattern = "^:%%?s/", icon = "", lang = "regex", view = "cmdline" },
-      -- also pick up the ask to replace message from nvim ie replace with y/n/a/q 
 
     },
   },
