@@ -49,6 +49,21 @@ require('packer').startup(function(use)
       'L3MON4D3/LuaSnip',         -- Snippet engine
     }
   }
+
+  use {
+    'SergioRibera/cmp-dotenv',
+    requires = { 'hrsh7th/nvim-cmp' },
+    run = function()
+      require('cmp').setup.buffer {
+        sources = {
+          { name = 'dotenv' },
+        },
+      }
+    end
+  }
+
+  use "rafamadriz/friendly-snippets"
+
   use {
     'nvim-treesitter/nvim-treesitter',
     run = function()
@@ -84,13 +99,22 @@ require('packer').startup(function(use)
   }
 
   use {
+    'MeanderingProgrammer/markdown.nvim',
+    requires = {
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('render-markdown').setup()
+    end
+  }
+
+  use {
     'nvim-telescope/telescope.nvim',
     requires = {
       { 'nvim-lua/plenary.nvim', 'BurntSuchi/ripgrep' }
     }
   }
 
-  use { "gmr458/vscode_modern_theme.nvim" }
   use { "catppuccin/nvim", as = "catppuccin" }
 
   use 'feline-nvim/feline.nvim'
@@ -99,8 +123,6 @@ require('packer').startup(function(use)
   use 'nvim-lua/popup.nvim'
   use 'nvim-lua/plenary.nvim'
   use { 'nvim-telescope/telescope-fzf-native.nvim', run = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
-  use 'nvim-telescope/telescope-fzy-native.nvim'
-  use 'nvim-telescope/telescope-media-files.nvim'
   use 'nvim-telescope/telescope-fzf-writer.nvim'
   use 'nvim-telescope/telescope-frecency.nvim'
   use 'nvim-telescope/telescope-project.nvim'
@@ -109,6 +131,13 @@ require('packer').startup(function(use)
     "nvim-telescope/telescope-file-browser.nvim",
     requires = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" }
   }
+  use({
+    "dharmx/telescope-media.nvim",
+    config = function()
+      require("telescope").load_extension("media")
+    end,
+  })
+
   --- Directory Buffer Editor
   use 'stevearc/oil.nvim'
 
@@ -162,10 +191,10 @@ require('packer').startup(function(use)
 
 
   use {
-      'numToStr/Comment.nvim',
-      config = function()
-          require('Comment').setup()
-      end
+    'numToStr/Comment.nvim',
+    config = function()
+      require('Comment').setup()
+    end
   }
   -- Dashboard
   use {
@@ -243,6 +272,15 @@ require('nvim-web-devicons').setup {
   -- your configuration here
 }
 
+require 'telescope'.load_extension('project')
+require 'telescope'.load_extension('fzf')
+require 'telescope'.load_extension('frecency')
+require 'telescope'.load_extension('fzf_writer')
+require 'telescope'.load_extension('noice')
+--- require 'telescope'.load_extension('file_browser')
+
+local canned = require("telescope._extensions.media.lib.canned")
+
 
 require('telescope').setup {
   defaults = {
@@ -258,9 +296,15 @@ require('telescope').setup {
       '--hidden',
     },
   },
+  extensions = {
+    media = {
+      backend = "chafa", -- image/gif backend
+      on_confirm_single = canned.single.copy_path,
+      on_confirm_muliple = canned.multiple.bulk_copy,
+    }
+  }
 }
-
-require 'telescope'.load_extension('project')
+vim.api.nvim_create_autocmd("FileType", { pattern = "TelescopeResults", command = [[setlocal nofoldenable]] })
 
 -- Copilot
 require('copilot').setup({
@@ -330,12 +374,13 @@ local mappings = {
     name = "File",
     f = { "<cmd>Telescope find_files<cr>", "Find File" },
     b = { "<cmd>Telescope buffers<cr>", "Find Buffer" },
-    w = { "<cmd>Telescope live_grep<cr>", "Find Word" },
+    W = { "<cmd>Telescope live_grep<cr>", "Find Word" },
+    w = { "<cmd>Telescope current_buffer_fuzzy_find<cr>", "Find in Buffer" },
     h = { "<cmd>Telescope help_tags<cr>", "Find Help" },
     p = { "<cmd>Telescope project<cr>", "Find Project" },
     r = { "<cmd>Telescope oldfiles<cr>", "Find Recent File" },
     t = { "<cmd>Telescope treesitter<cr>", "Find Treesitter" },
-    m = { "<cmd>Telescope media_files<cr>", "Find Media Files" },
+    m = { "<cmd>Telescope media<cr>", "Find Media Files" },
     s = { "<cmd>Telescope frecency<cr>", "Find Frecency" },
     z = { "<cmd>Telescope fzf writer<cr>", "Find FZF Writer" },
     n = { "<cmd>Telescope noice<cr>", "Find Noice" },
@@ -380,7 +425,7 @@ cmp.setup({
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
     ['<C-Space>'] = cmp.mapping.complete(),
     ['<C-e>'] = cmp.mapping.abort(),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
@@ -392,10 +437,10 @@ cmp.setup({
     expandable_indicator = true,
     format = lspkind.cmp_format({
       mode = 'symbol', -- show only symbol annotations
-      maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      maxwidth = 50,   -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
       -- can also be a function to dynamically calculate max width such as
       -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
-      ellipsis_char = '...',  -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      ellipsis_char = '...',    -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
       show_labelDetails = true, -- show labelDetails in menu. Disabled by default
 
       -- The function below will be called before any actual modifications from lspkind
@@ -457,7 +502,7 @@ end
 vim.api.nvim_create_autocmd("BufRead", {
   pattern = "*.yml,*.yaml",
   callback = function(args)
-    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false)     -- Check first 10 lines
+    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false) -- Check first 10 lines
     local content = table.concat(lines, "\n")
     if is_ansible(content) then
       vim.bo[args.buf].filetype = 'yaml.ansible'
@@ -469,7 +514,7 @@ vim.api.nvim_create_autocmd("BufRead", {
 vim.api.nvim_create_autocmd("BufNewFile", {
   pattern = "*.yml,*.yaml",
   callback = function(args)
-    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false)     -- Check first 10 lines
+    local lines = vim.api.nvim_buf_get_lines(args.buf, 0, 10, false) -- Check first 10 lines
     local content = table.concat(lines, "\n")
     if is_ansible(content) then
       vim.bo[args.buf].filetype = 'ansible.yaml'
@@ -510,21 +555,23 @@ lspconfig.html.setup {}
 lspconfig.zk.setup {}
 lspconfig.lua_ls.setup {}
 lspconfig.ansiblels.setup {}
+lspconfig.quick_lint_js.setup {}
+lspconfig.typescript_language_server.setup {}
 --- go
 lspconfig.gopls.setup {
   cmd = { "gopls", "serve" },
 }
 
 local signs = {
-    Error = " ",
-    Warn = "",
-    Hint = " ",
-    Info = " "
+  Error = " ",
+  Warn = "",
+  Hint = " ",
+  Info = " "
 }
 
 for type, icon in pairs(signs) do
-    local hl = "DiagnosticSign" .. type
-    vim.fn.sign_define(hl, {text = icon, texthl = hl, numhl = hl})
+  local hl = "DiagnosticSign" .. type
+  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
 end
 
 -- Global mappings.
@@ -532,7 +579,7 @@ end
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open diagnostic float' })
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic' })
-vim.keymap.set('n', '<leader>Q', '<cmd>TroubleToggle<CR>', { desc = 'Toggle Trouble' })
+vim.keymap.set('n', '<leader>Q', '<cmd>Trouble diagnostics toggle<CR>', { desc = 'Toggle Trouble' })
 
 
 vim.keymap.set('n', '<leader>\"', "<cmd>split<CR>", { desc = 'Horizontal split' })
@@ -647,8 +694,8 @@ require('gitsigns').setup {
 require("ibl").setup()
 require("ibl").overwrite {
   exclude = {
-    filetypes = { "NvimTree", "dashboard", "packer" },
-    buftypes = { "terminal" },
+    filetypes = { "NvimTree", "dashboard", "packer", "TelescopePrompt", "TelescopeResults" },
+    buftypes = { "terminal", "TelescopePrompt", "TelescopeResults" },
   },
 }
 
@@ -825,7 +872,6 @@ local function quickChat(selection)
   end
 end
 
-
 vim.keymap.set("n", "<leader>cce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot Chat Explain" })
 vim.keymap.set("n", "<leader>cct", "<cmd>CopilotChatToggle<cr>", { desc = "Copilot Chat Toggle" })
 vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.select").buffer) end,
@@ -836,21 +882,27 @@ vim.keymap.set("v", "<leader>cce", "<cmd>CopilotChatExplain<cr>", { desc = "Copi
 vim.keymap.set("n", "<leader>ccp", function()
   local actions = require("CopilotChat.actions")
   require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
- end, { desc = "Copilot Chat Prompt" })
+end, { desc = "Copilot Chat Prompt" })
+vim.keymap.set("v", "<leader>ccp", function()
+  local actions = require("CopilotChat.actions")
+  require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+end, { desc = "Copilot Chat Prompt" })
+
+vim.keymap.set("n", "<leader>ccc", "<cmd>CopilotChatCommit<cr>", { desc = "Copilot Chat Commit" })
 
 vim.api.nvim_create_autocmd('BufEnter', {
-    pattern = 'copilot-*',
-    callback = function()
-      -- turn off line number, status bar for this buffer
+  pattern = 'copilot-*',
+  callback = function()
+    -- turn off line number, status bar for this buffer
 
-      vim.wo.number = false
-      vim.wo.relativenumber = false
-      vim.wo.signcolumn = "no"
-      vim.wo.cursorline = false
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+    vim.wo.signcolumn = "no"
+    vim.wo.cursorline = false
 
-      -- Set the width of the buffer to be 1/3 of the screen 
-      vim.api.nvim_win_set_width(0, math.floor(vim.o.columns / 3))
-    end
+    -- Set the width of the buffer to be 1/3 of the screen
+    vim.api.nvim_win_set_width(0, math.floor(vim.o.columns / 3))
+  end
 })
 
 require("todo-comments").setup {}
@@ -866,7 +918,6 @@ vim.o.foldenable = true
 -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
 vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
 vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
-
 vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 
 -- Option 2: nvim lsp as LSP client
@@ -917,15 +968,44 @@ require('ufo').setup({
   fold_virt_text_handler = handler,
 })
 
+-- Disable status line and line numbers in terminal buffers
+vim.api.nvim_create_autocmd("TermOpen", {
+  pattern = "*",
+  callback = function()
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+    vim.o.laststatus = 0
+  end
+})
+
+-- Restore settings when leaving terminal buffers
+vim.api.nvim_create_autocmd("TermClose", {
+  pattern = "*",
+  callback = function()
+    vim.wo.number = true
+    vim.wo.relativenumber = true
+    vim.o.laststatus = 2
+  end
+})
+
 local builtin = require('statuscol.builtin')
 require('statuscol').setup({
-		segments = {
-			{ text = { "%s" },             click = "v:lua.ScSa" },
-			{ text = { builtin.lnumfunc }, click = "v:lua.ScLa", },
-			{
-				text = { " ", builtin.foldfunc, " " },
-				condition = { builtin.not_empty, true, builtin.not_empty },
-				click = "v:lua.ScFa"
-			},
+  segments = {
+    {
+      sign = {
+        name = { ".*" },
+        text = { ".*" },
+        maxwidth = 1,
+        colwidth = 1,
+        auto = true,
+        wrap = true
+      },
+      click = "v:lua.ScSa"
+    },
+    {
+      text = { builtin.lnumfunc, " " },
+      condition = { builtin.not_empty, true },
+      click = "v:lua.ScLa",
     }
+  },
 })
