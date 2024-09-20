@@ -80,6 +80,7 @@ stow zsh --restow
 stow tmux --restow
 stow nvim --restow
 stow starship --restow
+stow git --restow
 echo "Done with stow"
 
 echo "Setting zsh as default shell"
