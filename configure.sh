@@ -2,7 +2,7 @@
 # Requires 
 # curl, stow, git, zsh tmux, neovim
 
-dependencies=(curl stow git zsh tmux ripgrep)
+dependencies=(curl stow git zsh tmux ripgrep lsd batcat)
 for dep in ${dependencies[@]}; do
     if [ -x "$(command -v $dep)" ]; then
         echo "$dep is already installed"
@@ -34,7 +34,7 @@ else
     # if x64 install from github
     if [ "$(uname -m)" == "x86_64" ]; then
         echo "Installing neovim for x86_64"
-        curl -LO https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
+        curl -LO https://github.com/neovim/neovim/releases/download/v0.10.1/nvim-linux64.tar.gz
         tar -xf nvim-linux64.tar.gz
         cp -r nvim-linux64/* ~/.local
         rm -rf nvim-linux64
