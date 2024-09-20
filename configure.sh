@@ -2,7 +2,7 @@
 # Requires 
 # curl, stow, git, zsh tmux, neovim
 
-dependencies=(curl stow git zsh tmux ripgrep python3)
+dependencies=(curl stow git gh zsh tmux ripgrep python3)
 for dep in ${dependencies[@]}; do
     if [ -x "$(command -v $dep)" ]; then
         echo "$dep is already installed"
