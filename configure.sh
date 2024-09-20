@@ -2,7 +2,7 @@
 # Requires 
 # curl, stow, git, zsh tmux, neovim
 
-dependencies=(curl stow git zsh tmux ripgrep gh)
+dependencies=(curl stow git gh zsh tmux ripgrep python3)
 for dep in ${dependencies[@]}; do
     if [ -x "$(command -v $dep)" ]; then
         echo "$dep is already installed"
@@ -34,7 +34,7 @@ else
     # if x64 install from github
     if [ "$(uname -m)" == "x86_64" ]; then
         echo "Installing neovim for x86_64"
-        curl -LO https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
+        curl -LO https://github.com/neovim/neovim/releases/download/v0.10.1/nvim-linux64.tar.gz
         tar -xf nvim-linux64.tar.gz
         cp -r nvim-linux64/* ~/.local
         rm -rf nvim-linux64
@@ -84,3 +84,8 @@ echo "Done with stow"
 
 echo "Setting zsh as default shell"
 chsh -s $(which zsh)
+
+# If gnome install catpuccino theme
+if [ -x "$(command -v gsettings)" ]; then
+  curl -L https://raw.githubusercontent.com/catppuccin/gnome-terminal/v0.3.0/install.py | python3 -
+fi

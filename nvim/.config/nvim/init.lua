@@ -24,7 +24,6 @@ o.smartindent = true
 o.tabstop = 2
 o.shiftwidth = 2
 
-
 -- Enable Term gui colors
 vim.opt.termguicolors = true
 -- TODO: Move to lazy
@@ -214,7 +213,11 @@ require('packer').startup(function(use)
           },
 
           shortcut = {
-            { desc = '󰊳 Update', group = '@property', action = 'PackerSync', key = 'u' },
+            { desc = '󰊳 Update',
+              group = '@property',
+              action = 'PackerSync',
+              key = 'u'
+            },
             {
               icon = ' ',
               icon_hl = '@variable',
@@ -235,6 +238,13 @@ require('packer').startup(function(use)
               action = 'e ~/dotfiles',
               key = 'd',
             },
+            {
+              desc= 'Check Health',
+              group = '@property',
+              action = 'checkhealth',
+              key = 'h',
+              icon = ' ',
+            }
           },
 
           footer = { "" }
@@ -248,7 +258,7 @@ end)
 require("oil").setup()
 
 require("catppuccin").setup({
-  flavor = "mocha",
+  flavor = "macchiato",
   integrations = {
     treesitter = true,
     which_key = true,
@@ -357,40 +367,36 @@ vim.cmd.colorscheme "catppuccin"
 local wk = require("which-key")
 
 local git_mappings = {
-  ["g"] = {
-    name = "Git",
-    s = { "<cmd>Git<cr>", "Status" },
-    b = { "<cmd>Git blame<cr>", "Blame" },
-    c = { "<cmd>Git commit<cr>", "Commit" },
-    p = { "<cmd>Git push<cr>", "Push" },
-    l = { "<cmd>Git pull<cr>", "Pull" },
-    m = { "<cmd>Git merge<cr>", "Merge" },
-    r = { "<cmd>Git rebase<cr>", "Rebase" },
-    d = { "<cmd>Git diff<cr>", "Diff" },
-  },
+  { "<leader>g",  group = "Git" },
+  { "<leader>gb", "<cmd>Git blame<cr>",  desc = "Blame" },
+  { "<leader>gc", "<cmd>Git commit<cr>", desc = "Commit" },
+  { "<leader>gd", "<cmd>Git diff<cr>",   desc = "Diff" },
+  { "<leader>gl", "<cmd>Git log<cr>",    desc = "Log" },
+  { "<leader>gp", "<cmd>Git push<cr>",   desc = "Push" },
+  { "<leader>gr", "<cmd>Git rebase<cr>", desc = "Rebase" },
+  { "<leader>gs", "<cmd>Git<cr>",        desc = "Status" },
 }
 local mappings = {
-  ["<leader>"] = {
-    name = "File",
-    f = { "<cmd>Telescope find_files<cr>", "Find File" },
-    b = { "<cmd>Telescope buffers<cr>", "Find Buffer" },
-    W = { "<cmd>Telescope live_grep<cr>", "Find Word" },
-    w = { "<cmd>Telescope current_buffer_fuzzy_find<cr>", "Find in Buffer" },
-    h = { "<cmd>Telescope help_tags<cr>", "Find Help" },
-    p = { "<cmd>Telescope project<cr>", "Find Project" },
-    r = { "<cmd>Telescope oldfiles<cr>", "Find Recent File" },
-    t = { "<cmd>Telescope treesitter<cr>", "Find Treesitter" },
-    m = { "<cmd>Telescope media<cr>", "Find Media Files" },
-    s = { "<cmd>Telescope frecency<cr>", "Find Frecency" },
-    z = { "<cmd>Telescope fzf writer<cr>", "Find FZF Writer" },
-    n = { "<cmd>Telescope noice<cr>", "Find Noice" },
-  },
-  ["e"] = { "<cmd>NvimTreeToggle<cr>", "Toggle File Explorer" },
-  ["t"] = { "<cmd>split | terminal<cr>", "Open Terminal" },
+  { "<leader><leader>",  group = "Find" },
+  { "<leader><leader>W", "<cmd>Telescope live_grep<cr>",                 desc = "Find Word" },
+  { "<leader><leader>b", "<cmd>Telescope buffers<cr>",                   desc = "Find Buffer" },
+  { "<leader><leader>f", "<cmd>Telescope find_files<cr>",                desc = "Find File" },
+  { "<leader><leader>h", "<cmd>Telescope help_tags<cr>",                 desc = "Find Help" },
+  { "<leader><leader>m", "<cmd>Telescope media<cr>",                     desc = "Find Media Files" },
+  { "<leader><leader>n", "<cmd>Telescope noice<cr>",                     desc = "Find Noice" },
+  { "<leader><leader>p", "<cmd>Telescope project<cr>",                   desc = "Find Project" },
+  { "<leader><leader>r", "<cmd>Telescope oldfiles<cr>",                  desc = "Find Recent File" },
+  { "<leader><leader>s", "<cmd>Telescope frecency<cr>",                  desc = "Find Frecency" },
+  { "<leader><leader>t", "<cmd>Telescope treesitter<cr>",                desc = "Find Treesitter" },
+  { "<leader><leader>w", "<cmd>Telescope current_buffer_fuzzy_find<cr>", desc = "Find in Buffer" },
+  { "<leader><leader>z", "<cmd>Telescope fzf writer<cr>",                desc = "Find FZF Writer" },
+  { "<leader>e",         "<cmd>NvimTreeToggle<cr>",                      desc = "Toggle File Explorer" },
+  { "<leader>t",         "<cmd>split | terminal<cr>",                    desc = "Open Terminal" },
 }
 
-wk.register(git_mappings, { prefix = "<leader>" })
-wk.register(mappings, { prefix = "<leader>" })
+wk.add(git_mappings, { prefix = "<leader>" })
+wk.add(mappings, { prefix = "<leader>" })
+
 
 vim.opt.number = true
 
@@ -455,14 +461,6 @@ cmp.setup({
 
 require("luasnip.loaders.from_vscode").lazy_load()
 
-require("neodev").setup({})
-vim.lsp.start({
-  name = "lua-language-server",
-  cmd = { "lua-language-server" },
-  before_init = require("neodev.lsp").before_init,
-  root_dir = vim.fn.getcwd(),
-  settings = { Lua = {} },
-})
 
 require("mason").setup({
   ui = {
@@ -477,6 +475,14 @@ require("mason-lspconfig").setup({
   -- your configuration here
 })
 
+require("neodev").setup({})
+vim.lsp.start({
+  name = "lua-language-server",
+  cmd = { "lua-language-server" },
+  before_init = require("neodev.lsp").before_init,
+  root_dir = vim.fn.getcwd(),
+  settings = { Lua = {} },
+})
 -- Ansible Lsp
 -- Function to check if the content is likely part of an Ansible playbook
 local function is_ansible(content)
@@ -563,9 +569,9 @@ lspconfig.gopls.setup {
 }
 
 local signs = {
-  Error = " ",
+  Error = "",
   Warn = "",
-  Hint = " ",
+  Hint = "",
   Info = " "
 }
 
@@ -636,7 +642,6 @@ require("lspconfig").clangd.setup {
   capabilities = cmp_nvim_lsp.default_capabilities(),
   cmd = {
     "clangd",
-    "--offset-encoding=utf-16",
   },
 }
 
@@ -690,6 +695,7 @@ require('gitsigns').setup {
     map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
   end
 }
+wk.add({"<leader>h", group = "GitSigns"})
 
 require("ibl").setup()
 require("ibl").overwrite {
@@ -872,6 +878,7 @@ local function quickChat(selection)
   end
 end
 
+wk.add({ "<leader>cc", group = "Copilot Chat" })
 vim.keymap.set("n", "<leader>cce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot Chat Explain" })
 vim.keymap.set("n", "<leader>cct", "<cmd>CopilotChatToggle<cr>", { desc = "Copilot Chat Toggle" })
 vim.keymap.set("n", "<leader>ccq", function() quickChat(require("CopilotChat.select").buffer) end,
