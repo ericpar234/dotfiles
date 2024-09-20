@@ -57,9 +57,13 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 #alias
-if command -v batcat > /dev/null; then
+if command -v bat > /dev/null; then
+   alias cat=bat
+fi
+elif command -v batcat > /dev/null; then
    alias cat=batcat
 fi
+
 if command -v lsd > /dev/null; then
    alias ls=lsd
 fi
