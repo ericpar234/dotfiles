@@ -2,7 +2,7 @@
 # Requires 
 # curl, stow, git, zsh tmux, neovim
 
-dependencies=(curl stow git zsh tmux ripgrep lsd batcat git gh)
+dependencies=(curl stow git zsh tmux ripgrep python3)
 for dep in ${dependencies[@]}; do
     if [ -x "$(command -v $dep)" ]; then
         echo "$dep is already installed"
@@ -84,3 +84,8 @@ echo "Done with stow"
 
 echo "Setting zsh as default shell"
 chsh -s $(which zsh)
+
+# If gnome install catpuccino theme
+if [ -x "$(command -v gsettings)" ]; then
+  curl -L https://raw.githubusercontent.com/catppuccin/gnome-terminal/v0.3.0/install.py | python3 -
+fi
