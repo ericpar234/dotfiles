@@ -59,7 +59,6 @@ export VISUAL=nvim
 #alias
 if command -v bat > /dev/null; then
    alias cat=bat
-fi
 elif command -v batcat > /dev/null; then
    alias cat=batcat
 fi
