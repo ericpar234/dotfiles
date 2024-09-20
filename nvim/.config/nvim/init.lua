@@ -258,7 +258,7 @@ end)
 require("oil").setup()
 
 require("catppuccin").setup({
-  flavor = "mocha",
+  flavor = "macchiato",
   integrations = {
     treesitter = true,
     which_key = true,
