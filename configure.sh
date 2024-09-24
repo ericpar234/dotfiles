@@ -90,3 +90,5 @@ chsh -s $(which zsh)
 if [ -x "$(command -v gsettings)" ]; then
   curl -L https://raw.githubusercontent.com/catppuccin/gnome-terminal/v0.3.0/install.py | python3 -
 fi
+
+dconf load /org/gnome/shell/extensions/ < "./gnome-extensions.dconf"
